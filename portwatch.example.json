@@ -1,0 +1,9 @@
+{
+  "port_range": {
+    "start": 1,
+    "end": 1024
+  },
+  "interval": 30000000000,
+  "timeout": 500000000,
+  "alert_file": ""
+}
