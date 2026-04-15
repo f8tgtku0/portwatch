@@ -1,44 +1,48 @@
 package state
 
-// Diff holds the result of comparing two port lists.
-type Diff struct {
-	Opened []int
-	Closed []int
+import "github.com/user/portwatch/internal/scanner"
+
+// ChangeType indicates whether a port was opened or closed.
+type ChangeType string
+
+const (
+	Opened ChangeType = "opened"
+	Closed ChangeType = "closed"
+)
+
+// Change represents a single port state transition.
+type Change struct {
+	Port int
+	Kind ChangeType
 }
 
-// HasChanges returns true if any ports were opened or closed.
-func (d Diff) HasChanges() bool {
-	return len(d.Opened) > 0 || len(d.Closed) > 0
-}
+// Compare returns the list of changes between two port snapshots.
+// prev is the previously known set of open ports; curr is the current scan result.
+func Compare(prev, curr []scanner.Port) []Change {
+	prevSet := toSet(prev)
+	currSet := toSet(curr)
 
-// Compare returns the difference between a previous and current set of open ports.
-// Opened contains ports present in current but not previous.
-// Closed contains ports present in previous but not current.
-func Compare(previous, current []int) Diff {
-	prevSet := toSet(previous)
-	currSet := toSet(current)
+	var changes []Change
 
-	var opened, closed []int
-
-	for p := range currSet {
-		if !prevSet[p] {
-			opened = append(opened, p)
+	for port := range currSet {
+		if !prevSet[port] {
+			changes = append(changes, Change{Port: port, Kind: Opened})
 		}
 	}
 
-	for p := range prevSet {
-		if !currSet[p] {
-			closed = append(closed, p)
+	for port := range prevSet {
+		if !currSet[port] {
+			changes = append(changes, Change{Port: port, Kind: Closed})
 		}
 	}
 
-	return Diff{Opened: opened, Closed: closed}
+	return changes
 }
 
-func toSet(ports []int) map[int]bool {
+func toSet(ports []scanner.Port) map[int]bool {
 	s := make(map[int]bool, len(ports))
 	for _, p := range ports {
-		s[p] = true
+		s[p.Number] = true
 	}
 	return s
 }
