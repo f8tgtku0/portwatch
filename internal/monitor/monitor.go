@@ -66,6 +66,12 @@ func (m *Monitor) Diff(start, end int) ([]Change, error) {
 	return changes, nil
 }
 
+// Reset clears the monitor's previous state, causing the next Diff call to
+// treat all open ports as newly opened.
+func (m *Monitor) Reset() {
+	m.previous = make(map[int]bool)
+}
+
 // Run starts the monitoring loop, sending changes to the returned channel.
 // The loop stops when done is closed.
 func (m *Monitor) Run(start, end int, done <-chan struct{}) <-chan []Change {
