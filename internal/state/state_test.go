@@ -101,3 +101,23 @@ func TestClear_NoFile_NoError(t *testing.T) {
 		t.Errorf("Clear() on non-existent file should not error, got: %v", err)
 	}
 }
+
+func TestSave_EmptyPorts(t *testing.T) {
+	path := tempFile(t)
+	s := state.New(path)
+
+	if err := s.Save([]int{}); err != nil {
+		t.Fatalf("Save() with empty ports error: %v", err)
+	}
+
+	snap, err := s.Load()
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+	if snap == nil {
+		t.Fatal("expected snapshot, got nil")
+	}
+	if len(snap.Ports) != 0 {
+		t.Errorf("expected 0 ports, got %d", len(snap.Ports))
+	}
+}
