@@ -1,21 +1,18 @@
-// Package notify provides pluggable notification backends for portwatch.
+// Package notify provides notification backends for portwatch.
 //
-// The core abstraction is the Notifier interface, which exposes a single
-// Send(Message) method. Two implementations are included:
+// Supported notifiers:
 //
-//   - LogNotifier — writes human-readable lines to any io.Writer (default
-//     os.Stdout). Suitable for terminal output and log aggregation.
+//   - LogNotifier  – writes formatted lines to an io.Writer (default: stdout)
+//   - WebhookNotifier – HTTP POST JSON payload to a remote URL
+//   - EmailNotifier – sends SMTP email alerts via PlainAuth
 //
-//   - Multi — fan-out wrapper that forwards every message to a list of
-//     Notifiers. Useful when multiple sinks (e.g. log file + webhook) must
-//     receive the same event.
+// Multiple notifiers can be composed with NewMulti, which fans out a single
+// Message to every registered backend. Any backend error is collected and
+// returned as a combined error.
 //
-// # Usage
+// # Message
 //
-//	n := notify.NewLogNotifier(os.Stderr)
-//	_ = n.Send(notify.Message{
-//		Level: notify.LevelAlert,
-//		Title: "Port opened",
-//		Body:  "port 22 is now open",
-//	})
+// Each Send call receives a Message that wraps a state.Change (the port event)
+// together with a Timestamp so backends can render consistent time strings
+// regardless of when the message is ultimately delivered.
 package notify
