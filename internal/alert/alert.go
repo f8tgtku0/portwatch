@@ -39,27 +39,34 @@ func New(w io.Writer) *Notifier {
 	return &Notifier{out: w}
 }
 
+// levelForChange returns the alert Level appropriate for the given ChangeType.
+func levelForChange(t monitor.ChangeType) (Level, error) {
+	switch t {
+	case monitor.ChangeTypeOpened:
+		return LevelAlert, nil
+	case monitor.ChangeTypeClosed:
+		return LevelWarn, nil
+	default:
+		return "", fmt.Errorf("unknown change type: %v", t)
+	}
+}
+
 // Notify formats and writes an alert for the given change.
 func (n *Notifier) Notify(c monitor.Change) error {
+	level, err := levelForChange(c.Type)
+	if err != nil {
+		return err
+	}
+
 	ev := Event{
 		Timestamp: time.Now(),
+		Level:     level,
 		Change:    c,
 	}
 
-	switch c.Type {
-	case monitor.ChangeTypeOpened:
-		ev.Level = LevelAlert
-		_, err := fmt.Fprintf(n.out, "[%s] %s — port %d OPENED\n",
-			ev.Timestamp.Format(time.RFC3339), ev.Level, c.Port)
-		return err
-	case monitor.ChangeTypeClosed:
-		ev.Level = LevelWarn
-		_, err := fmt.Fprintf(n.out, "[%s] %s — port %d CLOSED\n",
-			ev.Timestamp.Format(time.RFC3339), ev.Level, c.Port)
-		return err
-	default:
-		return fmt.Errorf("unknown change type: %v", c.Type)
-	}
+	_, err = fmt.Fprintf(n.out, "[%s] %s — port %d %s\n",
+		ev.Timestamp.Format(time.RFC3339), ev.Level, c.Port, c.Type)
+	return err
 }
 
 // NotifyAll calls Notify for each change in the slice.
