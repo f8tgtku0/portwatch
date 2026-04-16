@@ -1,15 +1,13 @@
-// Package notify provides pluggable notifiers for portwatch.
+// Package notify provides multiple notification backends for portwatch.
 //
-// Each notifier implements a Send method that accepts a history.Entry
-// and delivers an alert via its configured channel.
+// Supported backends:
+//   - Log (stdout/writer)
+//   - Webhook (generic HTTP)
+//   - Slack
+//   - PagerDuty
+//   - OpsGenie
+//   - Email (SMTP)
 //
-// Available notifiers:
-//
-//   - LogNotifier  — writes formatted lines to an io.Writer (default: stdout)
-//   - WebhookNotifier — HTTP POST JSON payload to a URL
-//   - EmailNotifier — sends SMTP email alerts
-//   - SlackNotifier — posts messages to a Slack incoming webhook
-//
-// Multiple notifiers can be composed with NewMulti, which fans out a
-// single Send call to all registered notifiers and collects errors.
+// All backends implement the Notifier interface and can be composed
+// using NewMulti to fan out alerts to multiple destinations.
 package notify
