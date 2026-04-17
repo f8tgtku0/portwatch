@@ -1,6 +1,6 @@
 package notify
 
-// SupportedChannels lists all available notification channel names.
+// SupportedChannels lists all available notification channel identifiers.
 var SupportedChannels = []string{
 	"log",
 	"webhook",
@@ -12,12 +12,14 @@ var SupportedChannels = []string{
 	"teams",
 	"victorops",
 	"telegram",
+	"gotify",
+	"ntfy",
 }
 
-// IsSupported returns true if the given channel name is recognised.
-func IsSupported(name string) bool {
-	for _, ch := range SupportedChannels {
-		if ch == name {
+// IsSupported reports whether the given channel name is a known notifier.
+func IsSupported(channel string) bool {
+	for _, c := range SupportedChannels {
+		if c == channel {
 			return true
 		}
 	}
