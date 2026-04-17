@@ -1,6 +1,6 @@
 package notify
 
-// SupportedChannels lists all notification channel identifiers recognised by portwatch.
+// SupportedChannels lists all available notification channel identifiers.
 var SupportedChannels = []string{
 	"log",
 	"webhook",
@@ -15,9 +15,10 @@ var SupportedChannels = []string{
 	"gotify",
 	"ntfy",
 	"matrix",
+	"sms",
 }
 
-// IsSupported reports whether the given channel name is supported.
+// IsSupported returns true if the given channel name is recognised.
 func IsSupported(channel string) bool {
 	for _, c := range SupportedChannels {
 		if c == channel {
