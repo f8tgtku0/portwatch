@@ -3,7 +3,7 @@ package notify
 import "testing"
 
 func TestIsSupported_KnownChannels(t *testing.T) {
-	for _, ch := range []string{"log", "webhook", "slack", "email", "discord"} {
+	for _, ch := range []string{"slack", "webhook", "email", "pagerduty", "mattermost"} {
 		if !IsSupported(ch) {
 			t.Errorf("expected %q to be supported", ch)
 		}
@@ -29,7 +29,13 @@ func TestSupportedChannels_ContainsSMS(t *testing.T) {
 }
 
 func TestSupportedChannels_Length(t *testing.T) {
-	if len(SupportedChannels) < 14 {
-		t.Errorf("expected at least 14 channels, got %d", len(SupportedChannels))
+	if len(SupportedChannels) < 16 {
+		t.Errorf("expected at least 16 channels, got %d", len(SupportedChannels))
+	}
+}
+
+func TestSupportedChannels_ContainsMattermost(t *testing.T) {
+	if !IsSupported("mattermost") {
+		t.Error("expected mattermost to be supported")
 	}
 }
