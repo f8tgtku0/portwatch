@@ -6,10 +6,10 @@ var SupportedChannels = []string{
 	"webhook",
 	"email",
 	"slack",
-	"pagerduty",
-	"opsgenie",
 	"discord",
 	"teams",
+	"pagerduty",
+	"opsgenie",
 	"victorops",
 	"telegram",
 	"gotify",
@@ -22,9 +22,10 @@ var SupportedChannels = []string{
 	"rocketchat",
 	"zulip",
 	"lark",
+	"sns",
 }
 
-// IsSupported returns true if the given channel name is a known notifier.
+// IsSupported returns true if the given channel name is recognised.
 func IsSupported(channel string) bool {
 	for _, c := range SupportedChannels {
 		if c == channel {
