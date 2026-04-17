@@ -6,17 +6,18 @@ var SupportedChannels = []string{
 	"webhook",
 	"email",
 	"slack",
-	"discord",
-	"teams",
 	"pagerduty",
 	"opsgenie",
+	"discord",
+	"teams",
 	"victorops",
+	"telegram",
 }
 
-// IsSupported returns true if the given channel name is supported.
-func IsSupported(channel string) bool {
-	for _, c := range SupportedChannels {
-		if c == channel {
+// IsSupported returns true if the given channel name is recognised.
+func IsSupported(name string) bool {
+	for _, ch := range SupportedChannels {
+		if ch == name {
 			return true
 		}
 	}
