@@ -1,6 +1,6 @@
 package notify
 
-// SupportedChannels lists all available notification channel names.
+// SupportedChannels lists all available notification channel identifiers.
 var SupportedChannels = []string{
 	"log",
 	"webhook",
@@ -18,6 +18,7 @@ var SupportedChannels = []string{
 	"sms",
 	"pushover",
 	"mattermost",
+	"signalr",
 }
 
 // IsSupported returns true if the given channel name is recognised.
