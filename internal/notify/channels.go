@@ -19,12 +19,15 @@ var SupportedChannels = []string{
 	"pushover",
 	"mattermost",
 	"signalr",
+	"rocketchat",
+	"zulip",
+	"lark",
 }
 
-// IsSupported returns true if the given channel name is recognised.
-func IsSupported(name string) bool {
-	for _, ch := range SupportedChannels {
-		if ch == name {
+// IsSupported returns true if the given channel name is a known notifier.
+func IsSupported(channel string) bool {
+	for _, c := range SupportedChannels {
+		if c == channel {
 			return true
 		}
 	}
