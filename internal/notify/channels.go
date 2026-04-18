@@ -1,15 +1,15 @@
 package notify
 
-// SupportedChannels lists all available notification channel identifiers.
+// SupportedChannels lists all valid notification channel identifiers.
 var SupportedChannels = []string{
 	"log",
 	"webhook",
 	"email",
 	"slack",
-	"discord",
-	"teams",
 	"pagerduty",
 	"opsgenie",
+	"discord",
+	"teams",
 	"victorops",
 	"telegram",
 	"gotify",
@@ -23,12 +23,17 @@ var SupportedChannels = []string{
 	"zulip",
 	"lark",
 	"sns",
+	"googlechat",
+	"desktop",
+	"twilio",
+	"signalwire",
+	"pushbullet",
 }
 
 // IsSupported returns true if the given channel name is recognised.
-func IsSupported(channel string) bool {
+func IsSupported(name string) bool {
 	for _, c := range SupportedChannels {
-		if c == channel {
+		if c == name {
 			return true
 		}
 	}
