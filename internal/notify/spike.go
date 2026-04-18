@@ -9,47 +9,53 @@ import (
 	"github.com/user/portwatch/internal/state"
 )
 
-// NewSpikeNotifier creates a Notifier that sends alerts to Spike.sh via webhook.
-func NewSpikeNotifier(webhookURL string) Notifier {
-	return &spikeNotifier{webhookURL: webhookURL}
+// NewSpikeNotifier creates a Notifier that sends alerts to Spike.sh.
+func NewSpikeNotifier(apiKey string) Notifier {
+	return &spikeNotifier{
+		apiKey:  apiKey,
+		endpoint: "https://alert.spike.sh/" + apiKey,
+	}
 }
 
 type spikeNotifier struct {
-	webhookURL string
+	apiKey   string
+	endpoint string
 }
 
-func (s *spikeNotifier) Send(change state.Change) error {
+type spikePayload struct {
+	Title   string `json:"title"`
+	Message string `json:"message"`
+	Status  string `json:"status"`
+}
+
+func spikeStatus(c state.Change) string {
+	if c.Type == state.Opened {
+		return "CRITICAL"
+	}
+	return "RESOLVED"
+}
+
+func (s *spikeNotifier) Send(c state.Change) error {
 	action := "opened"
-	if !change.Opened {
+	if c.Type == state.Closed {
 		action = "closed"
 	}
-
-	payload := map[string]interface{}{
-		"title":   fmt.Sprintf("Port %d %s", change.Port, action),
-		"message": fmt.Sprintf("Port %d was %s on the monitored host.", change.Port, action),
-		"status":  spikeStatus(change.Opened),
+	payload := spikePayload{
+		Title:   fmt.Sprintf("Port %d %s", c.Port, action),
+		Message: fmt.Sprintf("Port %d was %s on the monitored host.", c.Port, action),
+		Status:  spikeStatus(c),
 	}
-
 	body, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("spike: marshal payload: %w", err)
+		return err
 	}
-
-	resp, err := http.Post(s.webhookURL, "application/json", bytes.NewReader(body))
+	resp, err := http.Post(s.endpoint, "application/json", bytes.NewReader(body))
 	if err != nil {
-		return fmt.Errorf("spike: send request: %w", err)
+		return err
 	}
 	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+	if resp.StatusCode >= 300 {
 		return fmt.Errorf("spike: unexpected status %d", resp.StatusCode)
 	}
 	return nil
-}
-
-func spikeStatus(opened bool) string {
-	if opened {
-		return "alert"
-	}
-	return "resolved"
 }
