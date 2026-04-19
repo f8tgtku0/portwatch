@@ -45,6 +45,10 @@ func (p *PushoverNotifier) Send(change state.Change) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return fmt.Errorf("pushover: rate limit exceeded (HTTP 429)")
+	}
+
 	var result struct {
 		Status  int      `json:"status"`
 		Errors  []string `json:"errors"`
