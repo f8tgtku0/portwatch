@@ -46,12 +46,16 @@ func (p *PushoverNotifier) Send(change state.Change) error {
 	defer resp.Body.Close()
 
 	var result struct {
-		Status int `json:"status"`
+		Status  int      `json:"status"`
+		Errors  []string `json:"errors"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return fmt.Errorf("pushover: failed to decode response: %w", err)
 	}
 	if result.Status != 1 {
+		if len(result.Errors) > 0 {
+			return fmt.Errorf("pushover: request failed: %s", strings.Join(result.Errors, ", "))
+		}
 		return fmt.Errorf("pushover: unexpected status %d", result.Status)
 	}
 	return nil
