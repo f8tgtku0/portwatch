@@ -29,6 +29,9 @@ func NewEmailNotifier(cfg EmailConfig) Notifier {
 }
 
 func (e *emailNotifier) Send(msg Message) error {
+	if len(e.cfg.To) == 0 {
+		return fmt.Errorf("email notifier: no recipients configured")
+	}
 	subject := fmt.Sprintf("[portwatch] Port %d %s", msg.Change.Port, actionLabel(msg.Change))
 	body := fmt.Sprintf(
 		"Time: %s\nHost: %s\nPort: %d\nProto: %s\nStatus: %s\n",
@@ -47,7 +50,10 @@ func (e *emailNotifier) Send(msg Message) error {
 	)
 	addr := fmt.Sprintf("%s:%d", e.cfg.Host, e.cfg.Port)
 	auth := smtp.PlainAuth("", e.cfg.Username, e.cfg.Password, e.cfg.Host)
-	return smtp.SendMail(addr, auth, e.cfg.From, e.cfg.To, [](raw))
+	if err := smtp.SendMail(addr, auth, e.cfg.From, e.cfg.To, []byte(raw)); err != nil {
+		return fmt.Errorf("email notifier: failed to send mail: %w", err)
+	}
+	return nil
 }
 
 func actionLabel(c state.Change) string {
