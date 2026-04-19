@@ -67,6 +67,25 @@ func TestZendeskNotifier_Send_BadURL(t *testing.T) {
 	}
 }
 
+func TestZendeskNotifier_Send_SubjectContainsPort(t *testing.T) {
+	var got map[string]interface{}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewDecoder(r.Body).Decode(&got)
+		w.WriteHeader(http.StatusCreated)
+	}))
+	defer ts.Close()
+
+	n := notify.NewZendeskNotifierWithURL(ts.URL, "user@example.com", "token123")
+	if err := n.Send(state.Change{Port: 9090, Host: "myhost", Type: state.Opened}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	ticket := got["ticket"].(map[string]interface{})
+	subject, _ := ticket["subject"].(string)
+	if subject == "" {
+		t.Error("expected non-empty subject in ticket")
+	}
+}
+
 func TestNewZendeskNotifier_ImplementsNotifier(t *testing.T) {
 	var _ notify.Notifier = notify.NewZendeskNotifier("sub", "email", "token")
 }
