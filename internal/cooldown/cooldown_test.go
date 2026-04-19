@@ -57,6 +57,16 @@ func TestReset_ClearsState(t *testing.T) {
 	}
 }
 
+func TestReset_LenIsZeroAfterReset(t *testing.T) {
+	c := cooldown.New(5 * time.Second)
+	c.Allow(8080, state.Opened)
+	c.Allow(9090, state.Closed)
+	c.Reset()
+	if c.Len() != 0 {
+		t.Fatalf("expected 0 entries after reset, got %d", c.Len())
+	}
+}
+
 func TestPrune_RemovesExpiredEntries(t *testing.T) {
 	c := cooldown.New(20 * time.Millisecond)
 	c.Allow(8080, state.Opened)
