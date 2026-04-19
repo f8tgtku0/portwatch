@@ -11,13 +11,21 @@ import (
 	"github.com/user/portwatch/internal/history"
 )
 
+// newTestServer creates a test HTTP server that captures the last received slackPayload.
+func newTestServer(t *testing.T, status int, received *slackPayload) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if received != nil {
+			body, _ := io.ReadAll(r.Body)
+			json.Unmarshal(body, received)
+		}
+		w.WriteHeader(status)
+	}))
+}
+
 func TestSlackNotifier_Send_OpenedPort(t *testing.T) {
 	var received slackPayload
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := io.ReadAll(r.Body)
-		json.Unmarshal(body, &received)
-		w.WriteHeader(http.StatusOK)
-	}))
+	ts := newTestServer(t, http.StatusOK, &received)
 	defer ts.Close()
 
 	n := NewSlackNotifier(ts.URL)
@@ -32,11 +40,7 @@ func TestSlackNotifier_Send_OpenedPort(t *testing.T) {
 
 func TestSlackNotifier_Send_ClosedPort(t *testing.T) {
 	var received slackPayload
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := io.ReadAll(r.Body)
-		json.Unmarshal(body, &received)
-		w.WriteHeader(http.StatusOK)
-	}))
+	ts := newTestServer(t, http.StatusOK, &received)
 	defer ts.Close()
 
 	n := NewSlackNotifier(ts.URL)
@@ -50,9 +54,7 @@ func TestSlackNotifier_Send_ClosedPort(t *testing.T) {
 }
 
 func TestSlackNotifier_Send_NonOKStatus(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-	}))
+	ts := newTestServer(t, http.StatusInternalServerError, nil)
 	defer ts.Close()
 
 	n := NewSlackNotifier(ts.URL)
