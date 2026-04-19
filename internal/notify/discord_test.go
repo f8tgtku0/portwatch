@@ -10,12 +10,20 @@ import (
 	"github.com/user/portwatch/internal/history"
 )
 
+// newTestServer creates a test HTTP server that captures the decoded discordPayload.
+func newTestServer(t *testing.T, status int, received *discordPayload) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if received != nil {
+			json.NewDecoder(r.Body).Decode(received)
+		}
+		w.WriteHeader(status)
+	}))
+}
+
 func TestDiscordNotifier_Send_OpenedPort(t *testing.T) {
 	var received discordPayload
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewDecoder(r.Body).Decode(&received)
-		w.WriteHeader(http.StatusNoContent)
-	}))
+	ts := newTestServer(t, http.StatusNoContent, &received)
 	defer ts.Close()
 
 	n := NewDiscordNotifier(ts.URL)
@@ -33,10 +41,7 @@ func TestDiscordNotifier_Send_OpenedPort(t *testing.T) {
 
 func TestDiscordNotifier_Send_ClosedPort(t *testing.T) {
 	var received discordPayload
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewDecoder(r.Body).Decode(&received)
-		w.WriteHeader(http.StatusNoContent)
-	}))
+	ts := newTestServer(t, http.StatusNoContent, &received)
 	defer ts.Close()
 
 	n := NewDiscordNotifier(ts.URL)
@@ -50,9 +55,7 @@ func TestDiscordNotifier_Send_ClosedPort(t *testing.T) {
 }
 
 func TestDiscordNotifier_Send_NonOKStatus(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-	}))
+	ts := newTestServer(t, http.StatusInternalServerError, nil)
 	defer ts.Close()
 
 	n := NewDiscordNotifier(ts.URL)
